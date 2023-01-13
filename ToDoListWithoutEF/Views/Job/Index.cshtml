@@ -1,0 +1,598 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+
+<style>
+    .label{
+        cursor: pointer;
+        display: inline-block;
+        padding: 7px;
+
+        background-color: transparent;
+        border: 2px solid black;
+    }
+
+    .btn-check:hover{
+        outline: none;
+        background-color: unset;
+        color: unset;
+    }
+
+    .btn-check:checked + .btn-outline-primary {
+        box-shadow: unset;
+    }
+
+    .bi::before{
+        font-weight: 900!important;
+    }
+
+    .loading-modal{
+        width: 100vw;
+        height: 100vh;
+        z-index: 1000;
+        background: rgba(0,0,0,0.7);
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        display: none;
+    }
+    .form-group {
+        padding: 5px 0;
+    }
+    .modal-show{
+       display: flex;
+    }
+    tr{
+        text-align: center;
+    }
+    tr td {
+        vertical-align: middle;
+    }
+    a{
+        text-decoration: none;
+
+    }
+    a:hover{
+        color: white;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center">
+    <a href="/Job" class="badge bg-secondary " style="font-size: 26px">List of Jobs</a>
+    <div class="feature">
+        <button type="button" id="Create-Btn" class="btn btn-warning" style="width:200px; color: white;"><i class="bi bi-journal-plus"></i>&ensp;Create New Job</button>
+        <button type="button" id="Create-Author-Btn" class="btn btn-success ms-2">Create New Author</button>
+    </div>
+    
+</div>
+
+<br />
+
+<div class="container text-center justify-content-center align-items-center d-flex mb-5 mt-4">
+
+    <select class="form-select form-select-sm" id="SearchType" style ="width: 120px">
+        <option selected value="0">Title</option>
+        <option value="1">Author</option>
+        <option value="2">Final status</option>
+        <option value="3">Importance Level</option>
+    </select>
+
+    <div class="input-group w-50 ">
+        <input type="text" class="form-control" id="Search-Bar" placeholder="Enter your keyword...">
+        <div class="input-group-append">
+            <button class="btn btn-primary px-4" id="Search-Btn" type="button">Search</button>
+        </div>
+    </div>
+</div>
+
+<p class="text-success" id="taskMessage" style="font-size: 16px;"></p>
+<div class="container-fluid">
+    <table class="table table-striped border w-100" id="table">
+        <thead>
+            <tr>
+                <th class="py-3">Title</th>
+                <th class="py-3">Description</th>
+                <th class="py-3 text-center">Is Completed</th>
+                <th class="py-3 text-center">Target</th>
+                <th class="py-3 text-center">Importance Level</th>
+                <th class="py-3 text-center ">Author</th>
+                <th class="py-3 text-center ">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+
+
+    </table>
+
+</div>
+
+<!--  Job Modal -->
+<div class="modal fade"tabindex="-1" role="dialog" id="Popup-Modal" >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="modal-title" class="modal-title"></h5>
+                <button type="button" id="Modal-Close-Btn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+                <form id="form">
+                    
+                    <input id="Id-Input" type = "hidden">
+
+                    <div class="form-group">
+                        <label class="control-label fw-bold" for="Title-Input">Title</label>
+                        <input class="form-control" id="Title-Input" placeholder="Required..."/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label fw-bold" for="Description-Input">Description</label>
+                        <input class="form-control" id="Description-Input" placeholder="Option..." />
+                    </div>
+
+                    <div class="form-group" id="IsCheck">
+                        <label class="control-label fw-bold" for="IsCheck-Input">Is Completed</label>
+                        <input type ="checkbox" id="IsCheck-Input" placeholder="Option..."/>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label fw-bold" for="Target-Input">Target</label>
+                        <input class="form-control" id="Target-Input" placeholder="Option..."/>
+                    </div>
+
+                    <div class="form-group d-flex align-items-center justify-content-between py-3">
+                        <label class="control-label fw-bold " for="#Level-Input">Level of Importance</label>
+                        <select class="form-select d-inline-flex w-50" id = "Level-Input" >
+                            <option style ="color:  #bfbfbf" selected value="0">Select option...</option>
+                            <option class="text-dark" value="1">Not at all important</option>
+                            <option class="text-primary" value="2">Slightly Important</option>
+                            <option class="text-success" value="3">Important</option>
+                            <option class="text-warning" value="4">Fairly Important</option>
+                            <option class="text-danger" value="5">Very Importance</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group form-group d-flex justify-content-between">
+                        <label class="control-label fw-bold" for="#AuthorName-Select">Author</label>
+                        <select class="form-select d-inline-flex w-50" id="AuthorName-Select">
+
+                        </select>
+
+                        <span id="AuthorName-Field" class="w-50 fw-bold text-success" style="font-size: 18px"></span>
+
+                    </div>
+
+                    <div class="form-group">
+                        <span class="text-danger" id ="validation" ></span>
+                    </div>
+
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="Execute-Btn" class="btn btn-primary px-5 my-3" /></button>
+                <button type="button" id="Back-Btn" class="btn btn-secondary px-3">Back to List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create new Author Modal -->
+
+<div class="modal fade" id = "Author-Modal">
+    <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" >Author</h5>
+                <button type="button" id="Author-Modal-Close-Btn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="AuthorName-Input" class="fw-bold form-label">Name</label>
+                        <input type="text" class="form-control" id="AuthorName-Input" placeholder="Required...">
+                        <span class="text-danger" id="AuthorName-Validatetion"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="AuthorAge" class="fw-bold form-label">Age</label>
+                        <input type="number" min="1" max="120" class="form-control" id="AuthorAge" placeholder="Required...">
+                        <span class="text-danger" id="AuthorAge-Validatetion"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="AuthorNote-Input" class="fw-bold form-label">Note</label>
+                        <textarea cols="70" rows="3" type="text" class="form-control" id="AuthorNote-Input" placeholder="Option..."></textarea>
+                        
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="Author-Modal-Close" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="Author-Modal-Submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* loading popup modal *@
+
+<!-- Modal -->
+
+<div class="loading-modal">
+    <div class="spinner-border text-dark" role="status">
+    </div>
+    <span>Loading...</span>
+</div>
+
+
+@section Scripts{
+    @{
+        <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+        <script>
+            $(document).ready(()=>{
+                $("#Search-Bar").val("");
+
+                
+                function RenderTable(msg = "", type = 0){
+
+                    //show loading modal
+                    $(".loading-modal").addClass("modal-show"); 
+                    var SearchKeyword = $("#Search-Bar").val();
+                    
+                    
+                    $.ajax({
+                        url: '@Url.Action("Search", "Job")' + '?Type='+ type + '&SearchKeyword=' + SearchKeyword,
+                        type: "GET",
+                        contentType: "json"
+                       
+                    })
+                    .done((res)=>{
+                        console.log(type, SearchKeyword)
+                        console.log(res);
+                            $("#table").DataTable(
+                                {
+                                    data: res,
+                                    paging: true,
+                                    destroy: true,
+                                    searching: false,
+                                    ordering: false,
+                                    pageLength: 10,
+                                    lengthChange: false,
+                                    columns: [
+                                        { title: "Title", data: "title" },
+                                        { title: "Description", data: "description" },
+                                        { 
+                                            title: "Is Completed", 
+                                            data: "isCheck",
+                                            render: (data, type, row)=>{
+                                                if(data){
+                                                    return `<i class="bi bi-check-lg text-success align-middle"></i>`;
+                                                }
+                                                return `<i class="bi bi-x-square-fill text-danger"></i>`
+                                            }
+                                        },
+                                        { title: "Target", data: "target" },
+                                        { 
+                                            title: "Importance Level", 
+                                            data: "level" , 
+                                            render(data,type, row){
+                                                if(data == 1 ){
+                                                    return `<p class="align-middle mb-0 text-dark" > Not at all important </p>`;
+                                                }
+                                                if(data == 2 ){
+                                                    return `<p class="align-middle mb-0 text-primary" > Slightly Important </p>`;
+                                                }
+                                                if(data == 3 ){
+                                                    return `<p class="align-middle mb-0 text-success fw-bold" > Important </p>`;
+                                                }
+                                                if(data == 4 ){
+                                                    return `<p class="align-middle mb-0 text-warning fw-bold" > Fairly Important </p>`;
+                                                }
+                                                if(data == 5 ){
+                                                    return `<p class="align-middle mb-0 text-danger fw-bolder" > Very Importance</p>`;
+                                                }
+                                                 return `<p class="align-middle mb-0" style = "opacity: 0.5">Please select in Edit</p>`;
+                                            }
+                                        },
+                                        { title: "Author", data: "authorName" },
+                                        { 
+                                            title: "Actions", 
+                                            data: "id",
+                                            render(data, type, row) {
+                                                return `<div class="text-center align-middle">
+                                                            <button type = "button" data-id = "${data}" class="btn btn-outline-primary px-3 me-2 Edit-Btn" ><i class="bi bi-pencil-square"></i>&ensp;Edit</button> 
+                                                            <button type = "button" data-id = "${data}"  class="btn btn-danger px-4 Remove-Btn"><i class="bi bi-eraser"></i>&ensp;Remove</button> 
+                                                        </div>`
+                                            } 
+                                        }
+                                    ]
+                                }
+                            )
+                        $("#Search-Bar").val("");
+                        
+                        /*
+                            var elements = '';
+                            $("#taskMessage").html(msg);
+                            if (res.length == 0) {
+                                $("#taskMessage").html("Not found any job.");
+                            } else {
+                                for (let i = 0; i < res.length; i++) {
+                                    let checkBtn = (res[i].isCheck) ? '<i class="bi bi-check2 text-success fw-bold"></i>' : '<i class="bi bi-x-lg text-danger fw-bold"></i>';
+                                        elements = elements + '<tr><td class="align-middle fw-normal">' + res[i].title + '</td><td class="align-middle">' + res[i].description + '</td><td class="text-center align-middle">' + checkBtn + '</td><td class = "text-center align-midde">' + res[i].target + '</td><td class = "text-center align-midde">' + res[i].level + '</td><td class = "text-center align-midde">'+res[i].name +'</td><td class="text-center align-middle"><button type = "button" data-id = ' + res[i].id + ' class="btn btn-outline-primary px-3 me-2 Edit-Btn" ><i class="bi bi-pencil-square"></i>&ensp;Edit</button> <button type = "button" data-id = ' + res[i].id + '  class="btn btn-danger px-4 Remove-Btn"><i class="bi bi-eraser"></i>&ensp;Remove</button> </td></tr>';
+
+                                }
+                            }
+
+                            $("#tbody").html(elements);
+
+                        */
+
+
+                            if (res.length == 0) {
+                                msg = "Not found any job.";
+                            } 
+                            $("#taskMessage").html(msg);
+
+                            // remove loading icon
+                        $(".loading-modal").removeClass("modal-show");
+                            
+                        //add event for remove and edit buttons
+
+                            $(".Edit-Btn").click(function (e) {
+                                let id = parseInt($(this).attr("data-id"));
+                                RenderDataInModal('@Url.Action("GetDetail", "Job")' + '?id=' + id, "Update");
+                            });
+
+
+                            $(".Remove-Btn").click(function (e) {
+                                let id = $(this).attr("data-id");
+                                $.ajax({
+                                    url: '@Url.Action("Remove", "Job")' + '?id=' + id,
+                                    type: "POST"
+                                })
+                                    .done((res) => {
+                                        RenderTable("Remove Successfully");
+                                    })
+                            });
+
+                    })
+                    .fail(()=>{
+                            alert("Error");
+                        })
+
+                }
+
+                function SearchHandler(){
+
+                    let msg="";
+
+                    if ($("#Search-Bar").val() != "") {
+                        msg = "Search Successfully";
+                    }
+
+                    RenderTable(msg, parseInt($("#SearchType").val()));
+
+                }
+                
+                function RenderDataInModal(url, title){
+                    RenderAuthorOptions();
+                    if(url!=""){
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            contentType: "json"
+                        })
+                            .done((res) => {
+                                console.log(res);
+                                $("#IsCheck").removeClass("d-none");
+                                $("#AuthorName-Select").addClass("d-none");
+                                $("#Popup-Modal").modal("show");
+                                $("#Id-Input").attr("value", res.id);
+                                $("#Title-Input").val(res.title);
+                                $("#Description-Input").val(res.description);
+                                $("#IsCheck-Input").prop('checked', res.isCheck);
+                                $("#Target-Input").val(res.target);
+                                $("#Level-Input").val(res.level);
+                                $("#AuthorName-Field").html(res.authorName);
+                            })
+                    } else  {
+                        $("#AuthorName-Field").addClass("d-none");
+                        $("#Popup-Modal").modal("show");
+                        $("#Id-Input").removeAttr("value");
+
+                    }
+                    $("#modal-title").html(title);
+                    $("#Execute-Btn").html(title);
+                    $("#Execute-Btn").attr("ex-type", title);
+                }
+
+                function RenderAuthorOptions(){
+                    $.ajax({
+                        url: '@Url.Action("GetAllAuthors", "Author")',
+                        type: "GET",
+                        contentType: 'json'
+                    })
+                        .done((authors) => {
+                            console.log(authors);
+                            var els = '<option selected value = "0">Select option</option>';
+                            authors.forEach((author) => {
+                                els = els + `<option value = "${author.authorId}">${author.name}</option>`
+                            })
+                            $("#AuthorName-Select").html(els);
+                        })
+                }
+
+                function CloseModal(){
+                    $("#Popup-Modal").modal("hide");
+                    ResetForm();
+                }
+
+
+                function ResetForm() {
+                    $("#modal-title").html("");
+                    $("#Id-Input").attr("value", 0);
+                    $("#Title-Input").val("");
+                    $("#Description-Input").val("");
+                    $("#Target-Input").val("");
+                    $("#IsCheck-Input").prop('checked', false);
+                    $("#IsCheck-Input").removeClass('d-none');
+                    $("#validation").html("");
+                    /*
+                        $("#AuthorName-Select").html("");
+                     */
+                    $("#AuthorName-Select").val(0);
+                    $("#Level-Input").val(0);
+                    $("#AuthorName-Select").removeClass("d-none");
+                    $("#AuthorName-Field").removeClass("d-none");
+                    
+                }
+
+
+                // create new Author
+                function CreateAuthor(){
+                    $.ajax({
+                        url: '@Url.Action("Create", "Author")' + '?Name='+$("#AuthorName-Input").val() +'&Age='+$("#AuthorAge").val() +'&Note='+ $("#AuthorNote-Input").val()
+                    })
+                    .done((res)=>{
+                        console.log(res);
+                        ResertAuthorForm(); 
+                    })
+                }
+
+                function AddEventListener(){
+                    $("#Create-Btn").on("click", () => {
+                        $("#IsCheck").addClass("d-none");
+                        $("#Popup-Modal").modal("show");
+                        RenderDataInModal("","Create");
+                    })
+
+                    $("#Modal-Close-Btn").on("click", CloseModal)
+
+                    $("#Back-Btn").on("click", CloseModal)
+
+                    $('#Popup-Modal').on('hidden.bs.modal', CloseModal)
+
+                    
+                    $("#Search-Btn").on("click", () => {
+                        SearchHandler();
+                    })
+
+                    $("#Execute-Btn").on("click", () => {
+
+                        if ($("#Execute-Btn").attr("ex-type") == "Create") {
+                            Add();
+                        }
+                        else {
+                            Update();
+                        }
+
+                    });
+
+                    $("#Author-Modal-Close-Btn").on("click", CloseAuthorModal)
+                    $("#Create-Author-Btn").on("click", ()=> {
+                        $("#Author-Modal").modal("show");
+                    })
+
+                    $("#Author-Modal-Submit").on("click",()=>{
+                        CreateAuthor();
+                        CloseAuthorModal();
+                    })
+
+                     $("#Author-Modal-Close").on("click",CloseAuthorModal)
+
+                    $('#Author-Modal').on('hidden.bs.modal',CloseAuthorModal);
+
+                }
+
+                function CloseAuthorModal(){
+                    $("#Author-Modal").modal("hide"); 
+                    ResertAuthorForm();
+                }
+
+                function ResertAuthorForm(){
+                    $("#AuthorName-Input").val("");
+                    $("#AuthorName-Validation").val("");
+                    $("#AuthorAge-Input").val("");
+                    $("#AuthorAge-Validation").val("");
+                    $("#AuthorNote-Input").val("");
+                }
+                
+
+                function Update(){
+                    if ($("#Title-Input").val() != '') {
+                        let formData = {
+                            id: parseInt($("#Id-Input").attr("value")),
+                            title: $("#Title-Input").val(),
+                            description: $("#Description-Input").val(),
+                            isCheck: $("#IsCheck-Input").prop('checked'),
+                            target: $("#Target-Input").val(),
+                            level: parseInt($("#Level-Input").val()),
+                            authorName: $("#AuthorName-Select option:selected").text(),
+                            authorId: $("#AuthorName-Select").val()
+                        };
+                        $.ajax({
+                            url: '@Url.Action("Edit", "Job")',
+                            type: "POST",
+                            data: formData
+                        })
+                            .done((res) => {
+                                console.log(formData);
+                                 if(res == 1){
+                                    CloseModal();
+                                    RenderTable("Update Successfully");
+                                } else {
+                                    $("#validation").html("You have already had the same job!");
+                                }
+                            
+                            })
+                    } 
+                    else {
+                        $("#validation").html("The Title field is requied");
+                    }
+                    
+                }
+
+                function Add(){
+                    if ($("#Title-Input").val() != '' && $('#AuthorName-Select :selected').val() !=0){
+                        $.ajax({
+                            url: '@Url.Action("Create", "Job")' + '?Title=' + $("#Title-Input").val() + '&Description=' + $("#Description-Input").val() + '&Target=' + $("#Target-Input").val() + '&Level=' + $("#Level-Input").val() + '&AuthorId=' + $("#AuthorName-Select").val(),
+                            type: "POST"
+                        })
+                            .done((res) => {
+                                if(res){
+                                    RenderTable("Create Successfully");
+                                    
+                                } else {
+                                    $("#validation").html("You have already had the same job!");
+                                }
+
+                                CloseModal();
+                            })
+                    } else {
+                        if ($("#Title-Input").val() == ''){
+                            $("#validation").html("The Title field is requied");
+                        }
+                        if ($('#AuthorName-Select :selected').val() == 0) {
+                            $("#validation").html("The Author selection is requied");
+                        }
+                    }
+                    
+                }
+
+                RenderTable();
+                SearchHandler();
+                
+                AddEventListener();
+            })
+        </script>
+    }
+}
+
+
