@@ -254,8 +254,6 @@
                        
                     })
                     .done((res)=>{
-                        console.log(type, SearchKeyword)
-                        console.log(res);
                             $("#table").DataTable(
                                 {
                                     data: res,
@@ -504,6 +502,13 @@
                         CreateAuthor();
                         CloseAuthorModal();
                     })
+
+                    $("#SearchType").on("change", ()=>{
+                        if($("#SearchType").val() == 2){
+                            RenderTable("Search successfully", 2 )
+                            }
+                        }
+                    )
 
                      $("#Author-Modal-Close").on("click",CloseAuthorModal)
 
