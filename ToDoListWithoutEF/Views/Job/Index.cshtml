@@ -323,7 +323,7 @@
                                                     return `<p class="align-middle mb-0 text-warning fw-bold" > Fairly Important </p>`;
                                                 }
                                                 if(data == 5 ){
-                                                    return `<p class="align-middle mb-0 text-danger fw-bolder" > Very Importance</p>`;
+                                                    return `<p class="align-middle mb-0 text-danger fw-bolder" > Very Important</p>`;
                                                 }
                                                  return `<p class="align-middle mb-0" style = "opacity: 0.5">Please select in Edit</p>`;
                                             }
@@ -470,7 +470,13 @@
                         contentType: 'json'
                     })
                         .done((authors) => {
-                            console.log(authors);
+                            if(authors.length == 0){
+                                $("#Execute-Btn").attr("disabled", true);
+                                $("#Edit-Author-Btn").attr("disabled", true);
+                            } else {
+                                $("#Execute-Btn").removeAttr("disabled");
+                                $("#Edit-Author-Btn").removeAttr("disabled");
+                            }
                             var els = '<option selected value = "0">Select option</option>';
                             authors.forEach((author) => {
                                 els = els + `<option value = "${author.authorId}">${author.name}</option>`
