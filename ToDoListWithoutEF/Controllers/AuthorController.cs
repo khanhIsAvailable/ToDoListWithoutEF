@@ -25,5 +25,21 @@ namespace ToDoListWithoutEF.Controllers
             bool i = authorDAL.CreateAuthor(Name, Age, Note);
             return i;
         }
+
+        public JsonResult GetAuthorById(int id)
+        {
+            Author res = authorDAL.GetById(id);
+            return Json(res);
+        }
+
+        public JsonResult RemoveAuthor(int id)
+        {
+            return Json(authorDAL.RemoveAuthor(id));
+        }
+
+        public bool SubmitRemoveAuthor(int id)
+        {
+            return authorDAL.SubmitRemoveAuthor(id);
+        }
     }
 }

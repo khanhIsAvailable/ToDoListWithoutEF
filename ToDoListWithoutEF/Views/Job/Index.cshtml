@@ -177,13 +177,14 @@
             </div>
             <div class="modal-footer">
                 <button type="button" id="Execute-Btn" class="btn btn-primary px-5 my-3" /></button>
+                <button type="button" id="Edit-Author-Btn" class="btn btn-warning px-5 my-3" />Edit Author</button>
                 <button type="button" id="Back-Btn" class="btn btn-secondary px-3">Back to List</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Create new Author Modal -->
+<!-- Author Modal -->
 
 <div class="modal fade" id = "Author-Modal">
     <div class="modal-dialog modal-dialog-centered modal-lg " role="document">
@@ -196,6 +197,9 @@
             </div>
             <div class="modal-body">
                 <form>
+
+                    <input id="AuthorId-Input" type="hidden">
+
                     <div class="mb-3">
                         <label for="AuthorName-Input" class="fw-bold form-label">Name</label>
                         <input type="text" class="form-control" id="AuthorName-Input" placeholder="Required...">
@@ -215,6 +219,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" id="Author-Modal-Close" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="Author-Modal-Remove" class="btn btn-danger d-none">Remove</button>
                 <button type="button" id="Author-Modal-Submit" class="btn btn-primary">Submit</button>
             </div>
         </div>
@@ -223,7 +228,7 @@
 
 @* loading popup modal *@
 
-<!-- Modal -->
+<!-- loading Modal -->
 
 <div class="loading-modal">
     <div class="spinner-border text-dark" role="status">
@@ -231,6 +236,30 @@
     <span>Loading...</span>
 </div>
 
+
+<!-- Notification Modal -->
+<div class="modal fade" id="Notification-Modal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="Notification-Title">Notification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div id="Notification-Body" class="modal-body">
+        <p id="Notification-Message"></p>
+        <ol class="list-group" id ="list">
+            <!--
+                <li class="list-group-item"></li>
+            -->
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="Notification-Submit">I Agree</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 @section Scripts{
     @{
@@ -345,7 +374,7 @@
 
                             $(".Edit-Btn").click(function (e) {
                                 let id = parseInt($(this).attr("data-id"));
-                                RenderDataInModal('@Url.Action("GetDetail", "Job")' + '?id=' + id, "Update");
+                                RenderDataInJobModal('@Url.Action("GetDetail", "Job")' + '?id=' + id, "Update");
                             });
 
 
@@ -379,7 +408,7 @@
 
                 }
                 
-                function RenderDataInModal(url, title){
+                function RenderDataInJobModal(url, title){
                     RenderAuthorOptions();
                     if(url!=""){
                         $.ajax({
@@ -399,6 +428,7 @@
                                 $("#Target-Input").val(res.target);
                                 $("#Level-Input").val(res.level);
                                 $("#AuthorName-Field").html(res.authorName);
+                                $("#Edit-Author-Btn").attr("data-id", res.authorId)
                             })
                     } else  {
                         $("#AuthorName-Field").addClass("d-none");
@@ -409,6 +439,28 @@
                     $("#modal-title").html(title);
                     $("#Execute-Btn").html(title);
                     $("#Execute-Btn").attr("ex-type", title);
+                }
+
+
+                function RenderDataInAuthorModal(id){
+                    if(id!=0){
+                        $.ajax({
+                            url: '@Url.Action("GetAuthorById","Author")' + "?id=" + id,
+                            type: "GET",
+                            contentType: "json"
+                        })
+                            .done((res) => {
+                                console.log(res);
+                                $("#AuthorId-Input").val(res.authorId);
+                                $("#AuthorName-Input").val(res.name);
+                                $("#AuthorAge").val(res.age);
+                                $("#AuthorNote-Input").html(res.note);
+                            })
+                    } else  {
+                        console.log("Error");
+                        console.log("id = 0");
+                    }
+                    
                 }
 
                 function RenderAuthorOptions(){
@@ -449,6 +501,7 @@
                     $("#Level-Input").val(0);
                     $("#AuthorName-Select").removeClass("d-none");
                     $("#AuthorName-Field").removeClass("d-none");
+                    $("#Edit-Author-Btn").attr("data-id", 0)
                     
                 }
 
@@ -456,11 +509,11 @@
                 // create new Author
                 function CreateAuthor(){
                     $.ajax({
-                        url: '@Url.Action("Create", "Author")' + '?Name='+$("#AuthorName-Input").val() +'&Age='+$("#AuthorAge").val() +'&Note='+ $("#AuthorNote-Input").val()
+                        url: '@Url.Action("Create", "Author")' + '?Name='+$("#AuthorName-Input").val() +'&Age='+$("#AuthorAge").val() +'&Note='+ $("#AuthorNote-Input").val(),
+                        type: 'post'
                     })
                     .done((res)=>{
-                        console.log(res);
-                        ResertAuthorForm(); 
+                        ResetAuthorForm(); 
                     })
                 }
 
@@ -468,7 +521,7 @@
                     $("#Create-Btn").on("click", () => {
                         $("#IsCheck").addClass("d-none");
                         $("#Popup-Modal").modal("show");
-                        RenderDataInModal("","Create");
+                        RenderDataInJobModal("","Create");
                     })
 
                     $("#Modal-Close-Btn").on("click", CloseModal)
@@ -494,6 +547,14 @@
                     });
 
                     $("#Author-Modal-Close-Btn").on("click", CloseAuthorModal)
+
+                    $("#Edit-Author-Btn").on("click", ()=>{
+                        let id = parseInt($("#Edit-Author-Btn").attr("data-id"));
+                        RenderDataInAuthorModal(id);
+                        $("#Author-Modal-Remove").removeClass("d-none");
+                        $("#Author-Modal").modal("show");
+                    })
+                    
                     $("#Create-Author-Btn").on("click", ()=> {
                         $("#Author-Modal").modal("show");
                     })
@@ -510,23 +571,80 @@
                         }
                     )
 
-                     $("#Author-Modal-Close").on("click",CloseAuthorModal)
+                    $("#Author-Modal-Close").on("click",CloseAuthorModal)
 
                     $('#Author-Modal').on('hidden.bs.modal',CloseAuthorModal);
+
+                    function SubmitRemoveAuthor(id){
+                        $.ajax({
+                            url: '@Url.Action("SubmitRemoveAuthor", "Author")' + '?id=' + id,
+                            type: 'post'
+                        })
+                            .done((res) => {
+                                console.log(res);
+                                if(res){
+                                    RenderTable("Remove Author Successfully");
+                                } else {
+                                    RenderTable("Cannot Remove Author");
+                                }
+                            })
+                    }
+
+
+                    $("#Author-Modal-Remove").on("click",()=>{
+                        let id = parseInt($("#AuthorId-Input").val());
+
+                        $.ajax({
+                            url: '@Url.Action("RemoveAuthor", "Author")' +"?id="+id,
+                            type: 'get'
+                        })
+                        .done((res) => {
+                            console.log(res);
+                            if(res != null){
+                                let elements = "" ;
+                                $("#Notification-Message").html("If you remove this Author, all of his or her records followed will be removed.");
+                                res.forEach((item)=>{
+                                        elements = (!!item.description) ? elements + `<li class="list-group-item" > <p>Title: ${item.title} </p><span class= "text-muted" style="font-size: 14px;">Description: ${item.description}</span > </li>` : elements + ` <li class="list-group-item" > <p>Title: ${ item.title } </p></li > `
+                                   
+                                })
+                                $("#list").html(elements);
+                                $("#Notification-Modal").modal("show");
+                                $("#Notification-Submit").on("click", ()=>{
+                                    SubmitRemoveAuthor(id);
+                                    ResetPage();
+                                })
+
+                            } else {
+                                SubmitRemoveAuthor(id);
+                            }
+                        })
+
+                    })
+
+                }
+
+                function ResetPage(){
+                    $("#Notification-Modal").modal("hide");
+                    $("#Author-Modal").modal("hide");
+                    $("#Popup-Modal").modal("hide");
 
                 }
 
                 function CloseAuthorModal(){
                     $("#Author-Modal").modal("hide"); 
-                    ResertAuthorForm();
+                    ResetAuthorForm();
                 }
 
-                function ResertAuthorForm(){
+                function ResetAuthorForm(){
                     $("#AuthorName-Input").val("");
-                    $("#AuthorName-Validation").val("");
-                    $("#AuthorAge-Input").val("");
+                    $("#AuthorName-Validation").html("");
+                    $("#AuthorAge").val('');
                     $("#AuthorAge-Validation").val("");
                     $("#AuthorNote-Input").val("");
+                    if(!$("#Author-Modal-Remove").hasClass("d-none")){
+                        $("#Author-Modal-Remove").addClass("d-none")
+                    }
+                    
                 }
                 
 
@@ -562,6 +680,11 @@
                         $("#validation").html("The Title field is requied");
                     }
                     
+                }
+
+                function ResetNotificationModal(){
+                    $("#list").html("");
+                    $("#Notification-Message").html("");
                 }
 
                 function Add(){
